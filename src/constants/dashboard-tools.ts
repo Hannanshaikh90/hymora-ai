@@ -1,0 +1,42 @@
+export const dashboardTools = [
+  {
+    label: "Conversation",
+    description: "Chat with the most advanced AI model for complex tasks.",
+    icon: "message",
+    href: "/dashboard/conversation",
+    iconColor: "text-violet-400",
+    iconBg: "bg-violet-500/10",
+  },
+  {
+    label: "Image Generation",
+    description: "Generate photorealistic images from plain-text prompts.",
+    icon: "image",
+    href: "/dashboard/image",
+    iconColor: "text-pink-400",
+    iconBg: "bg-pink-500/10",
+  },
+  {
+    label: "Video Creation",
+    description: "Transform your ideas into stunning, high-quality video.",
+    icon: "video",
+    href: "/dashboard/video",
+    iconColor: "text-orange-400",
+    iconBg: "bg-orange-500/10",
+  },
+  {
+    label: "Music Generation",
+    description: "Compose original music tracks from a simple description.",
+    icon: "music",
+    href: "/dashboard/music",
+    iconColor: "text-emerald-400",
+    iconBg: "bg-emerald-500/10",
+  },
+  {
+    label: "Code Assistant",
+    description: "Generate, review, and debug code in any language.",
+    icon: "code",
+    href: "/dashboard/code",
+    iconColor: "text-yellow-400",
+    iconBg: "bg-yellow-500/10",
+  },
+];

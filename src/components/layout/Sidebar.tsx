@@ -1,31 +1,28 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutDashboard,
-  BrainCircuit,
-  MessageSquare,
-  BarChart3,
-  FolderOpen,
-  Settings,
-  Users,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserDropdown } from "./UserDropdown";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+  Brain,
+  MessageSquare,
+  FolderOpen,
+  Sparkles,
+  Activity,
+  Code2,
+  ImageIcon,
+  Music,
+  Video,
+  Settings,
+  CreditCard,
+  ChevronDown,
+  Circle,
+  Plus,
+  Bell,
+  Home,
+  Layers,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,255 +34,367 @@ interface NavItem {
 }
 
 interface NavGroup {
-  title?: string;
+  label: string;
   items: NavItem[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Navigation Config ────────────────────────────────────────────────────────
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    items: [
-      { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-      { label: "AI Studio", href: "/dashboard/studio", icon: BrainCircuit, badge: "New" },
-      { label: "Chat", href: "/dashboard/chat", icon: MessageSquare, badge: 3 },
-    ],
-  },
-  {
-    title: "Workspace",
-    items: [
-      { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-      { label: "Projects", href: "/dashboard/projects", icon: FolderOpen },
-      { label: "Automations", href: "/dashboard/automations", icon: Zap },
-      { label: "Team", href: "/dashboard/team", icon: Users },
-    ],
-  },
-  {
-    title: "System",
-    items: [
-      { label: "Settings", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
+const coreNav: NavItem[] = [
+  { label: "Ask Hymora", href: "/dashboard/conversation", icon: Brain },
+  { label: "Memory", href: "/dashboard/memory", icon: Sparkles, badge: "12" },
+  { label: "Activity", href: "/dashboard/activity", icon: Activity },
 ];
 
-const SIDEBAR_WIDTH = 240;
-const SIDEBAR_COLLAPSED_WIDTH = 64;
+const toolsNav: NavGroup = {
+  label: "Generate",
+  items: [
+    { label: "Image", href: "/dashboard/image", icon: ImageIcon },
+    { label: "Code", href: "/dashboard/code", icon: Code2 },
+    { label: "Video", href: "/dashboard/video", icon: Video },
+    { label: "Music", href: "/dashboard/music", icon: Music },
+  ],
+};
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+const workspaceNav: NavGroup = {
+  label: "Workspaces",
+  items: [
+    { label: "Projects", href: "/dashboard/projects", icon: FolderOpen },
+  ],
+};
 
-interface SidebarNavItemProps {
+const systemNav: NavItem[] = [
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
+];
+
+// ─── NavLink ──────────────────────────────────────────────────────────────────
+
+interface NavLinkProps {
   item: NavItem;
-  isCollapsed: boolean;
   isActive: boolean;
 }
 
-const SidebarNavItem = ({ item, isCollapsed, isActive }: SidebarNavItemProps) => {
+function NavLink({ item, isActive }: NavLinkProps) {
   const Icon = item.icon;
 
-  const content = (
+  return (
     <Link
       href={item.href}
       className={cn(
-        "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
-        "group hover:bg-white/[0.06] hover:text-white",
+        "group relative flex items-center gap-2.5 rounded-lg px-3 py-[7px] text-[13px] font-medium transition-all duration-150",
         isActive
-          ? "bg-white/[0.08] text-white"
-          : "text-zinc-400",
-        isCollapsed && "justify-center px-0"
+          ? "bg-[rgba(124,58,237,0.14)] text-[#E5E5F0]"
+          : "text-[#5A5A72] hover:bg-[rgba(255,255,255,0.035)] hover:text-[#8B8BA3]"
       )}
     >
-      {/* Active indicator */}
+      {/* active indicator bar */}
       {isActive && (
-        <motion.span
-          layoutId="sidebar-active-pill"
-          className="absolute inset-0 rounded-lg bg-white/[0.08] ring-1 ring-white/[0.12]"
-          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-        />
+        <span className="absolute left-0 top-1/2 h-[18px] w-[2px] -translate-y-1/2 rounded-r-full bg-[#7C3AED]" />
       )}
 
-      <span className="relative z-10 flex shrink-0 items-center">
-        <Icon
-          size={16}
-          className={cn(
-            "transition-colors duration-150",
-            isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"
-          )}
-        />
-      </span>
-
-      <AnimatePresence initial={false}>
-        {!isCollapsed && (
-          <motion.span
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
-            transition={{ duration: 0.2 }}
-            className="relative z-10 flex flex-1 items-center justify-between overflow-hidden whitespace-nowrap"
-          >
-            {item.label}
-            {item.badge !== undefined && (
-              <Badge
-                variant="secondary"
-                className="ml-auto h-4 min-w-4 shrink-0 bg-white/[0.08] px-1 text-[10px] font-medium text-zinc-400"
-              >
-                {item.badge}
-              </Badge>
-            )}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </Link>
-  );
-
-  if (isCollapsed) {
-    return (
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent side="right" className="flex items-center gap-2">
-          {item.label}
-          {item.badge !== undefined && (
-            <Badge variant="secondary" className="text-[10px]">
-              {item.badge}
-            </Badge>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return content;
-};
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-interface SidebarProps {
-  isCollapsed: boolean;
-  onToggle: () => void;
-  className?: string;
-}
-
-export function Sidebar({ isCollapsed, onToggle, className }: SidebarProps) {
-  const pathname = usePathname();
-
-  const isActive = (href: string) =>
-    href === "/dashboard" ? pathname === href : pathname.startsWith(href);
-
-  return (
-    <TooltipProvider>
-      <motion.aside
-        animate={{ width: isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH }}
-        transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+      {/* icon */}
+      <Icon
         className={cn(
-          "relative flex h-full shrink-0 flex-col overflow-hidden",
-          "border-r border-white/[0.06] bg-[#0a0a0a]",
-          className
+          "h-[15px] w-[15px] shrink-0 transition-colors duration-150",
+          isActive
+            ? "text-[#A78BFA]"
+            : "text-[#3A3A52] group-hover:text-[#5A5A72]"
         )}
-      >
-        {/* Logo */}
-        <div
+        strokeWidth={1.75}
+      />
+
+      <span className="flex-1 truncate tracking-[-0.01em]">{item.label}</span>
+
+      {item.badge !== undefined && (
+        <span
           className={cn(
-            "flex h-14 shrink-0 items-center border-b border-white/[0.06] px-4",
-            isCollapsed && "justify-center px-0"
+            "ml-auto flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold tabular-nums",
+            isActive
+              ? "bg-[rgba(124,58,237,0.28)] text-[#A78BFA]"
+              : "bg-[rgba(255,255,255,0.05)] text-[#5A5A72]"
           )}
         >
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] ring-1 ring-white/[0.12]">
-              <Sparkles size={14} className="text-white" />
-            </span>
-            <AnimatePresence initial={false}>
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden whitespace-nowrap text-sm font-semibold tracking-tight text-white"
-                >
-                  Nexus AI
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
+          {item.badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+// ─── NavSection ───────────────────────────────────────────────────────────────
+
+interface NavSectionProps {
+  label: string;
+  items: NavItem[];
+  pathname: string;
+}
+
+function NavSection({ label, items, pathname }: NavSectionProps) {
+  return (
+    <div className="space-y-0.5">
+      <p className="mb-1.5 px-3 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-[#2E2E45]">
+        {label}
+      </p>
+      {items.map((item) => (
+        <NavLink key={item.href} item={item} isActive={pathname === item.href} />
+      ))}
+    </div>
+  );
+}
+
+// ─── AIStatusPanel ────────────────────────────────────────────────────────────
+
+const AI_STATUSES = [
+  { label: "Memory Engine Active" },
+  { label: "Knowledge Indexed" },
+  { label: "Context Retrieval Ready" },
+] as const;
+
+function AIStatusPanel() {
+  return (
+    <div
+      className="mx-2 mb-2 overflow-hidden rounded-xl p-3.5"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(124,58,237,0.03) 100%)",
+        border: "0.5px solid rgba(124,58,237,0.18)",
+      }}
+    >
+      {/* header */}
+      <div className="mb-3 flex items-center gap-2">
+        <div
+          className="flex h-5 w-5 items-center justify-center rounded-md"
+          style={{ background: "rgba(124,58,237,0.2)" }}
+        >
+          <Brain className="h-3 w-3 text-[#A78BFA]" strokeWidth={1.75} />
         </div>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#A78BFA]">
+          AI Status
+        </span>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden p-3 scrollbar-none">
-          {NAV_GROUPS.map((group, groupIdx) => (
-            <div key={groupIdx} className="flex flex-col gap-0.5">
-              <AnimatePresence initial={false}>
-                {!isCollapsed && group.title && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600"
-                  >
-                    {group.title}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-              {group.items.map((item) => (
-                <SidebarNavItem
-                  key={item.href}
-                  item={item}
-                  isCollapsed={isCollapsed}
-                  isActive={isActive(item.href)}
-                />
-              ))}
-            </div>
-          ))}
-        </nav>
+      <div className="space-y-2">
+        {AI_STATUSES.map((s) => (
+          <div key={s.label} className="flex items-center gap-2">
+            <span className="relative flex h-1.5 w-1.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#639922] opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#639922]" />
+            </span>
+            <span className="text-[11px] text-[#4A6824]">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-        {/* User section */}
-        <div className="shrink-0 border-t border-white/[0.06] p-3">
-          <div
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/[0.04]",
-              isCollapsed && "justify-center px-0"
-            )}
-          >
-            <Avatar className="h-7 w-7 shrink-0 ring-1 ring-white/[0.12]">
-              <AvatarImage src="/avatar.png" alt="User" />
-              <AvatarFallback className="bg-white/[0.08] text-[10px] font-medium text-white">
-                NA
-              </AvatarFallback>
-            </Avatar>
-            <AnimatePresence initial={false}>
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <p className="whitespace-nowrap text-xs font-medium text-white">
-                    Alex Johnson
-                  </p>
-                  <p className="whitespace-nowrap text-[10px] text-zinc-500">
-                    Pro Plan
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+// ─── WorkspaceInsight ─────────────────────────────────────────────────────────
+
+function WorkspaceInsight() {
+  const insights = [
+    { label: "Workspaces", value: "4" },
+    { label: "Knowledge", value: "128" },
+    { label: "Memories", value: "1.2k" },
+  ];
+
+  return (
+    <div
+      className="mx-2 mb-2 overflow-hidden rounded-xl"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "0.5px solid rgba(255,255,255,0.05)",
+      }}
+    >
+      {/* top gradient bar */}
+      <div
+        className="h-px w-full"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(124,58,237,0.4), transparent)",
+        }}
+      />
+
+      <div className="flex divide-x divide-[rgba(255,255,255,0.04)] px-0">
+        {insights.map((ins) => (
+          <div key={ins.label} className="flex flex-1 flex-col items-center py-2.5">
+            <span
+              className="text-[15px] font-medium tabular-nums tracking-tight"
+              style={{ color: "#E5E5F0", letterSpacing: "-0.02em" }}
+            >
+              {ins.value}
+            </span>
+            <span className="mt-0.5 text-[9.5px] font-medium uppercase tracking-[0.08em] text-[#3A3A52]">
+              {ins.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── MemoryPulse ──────────────────────────────────────────────────────────────
+
+function MemoryPulse() {
+  return (
+    <div
+      className="relative mx-2 mb-2 overflow-hidden rounded-xl p-3"
+      style={{
+        background: "#0D0B14",
+        border: "0.5px solid rgba(124,58,237,0.22)",
+      }}
+    >
+      {/* glow blob */}
+      <div
+        className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full blur-xl"
+        style={{ background: "rgba(124,58,237,0.18)" }}
+      />
+
+      <div className="relative">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Brain className="h-3 w-3 text-[#A78BFA]" strokeWidth={1.75} />
+            <span className="text-[11px] font-medium text-[#A78BFA]">
+              Memory active
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Circle className="h-1.5 w-1.5 fill-[#639922] text-[#639922]" />
+            <span className="text-[10px] font-medium" style={{ color: "#4A6824" }}>
+              Live
+            </span>
           </div>
         </div>
 
-        {/* Collapse toggle */}
-        <button
-          onClick={onToggle}
-          className={cn(
-            "absolute -right-3 top-[52px] z-10 flex h-6 w-6 items-center justify-center",
-            "rounded-full border border-white/[0.1] bg-[#0a0a0a] text-zinc-400",
-            "shadow-sm transition-all hover:border-white/[0.2] hover:text-white",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-          )}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        <div
+          className="h-[2px] w-full overflow-hidden rounded-full"
+          style={{ background: "rgba(255,255,255,0.05)" }}
         >
-          {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-        </button>
-      </motion.aside>
-    </TooltipProvider>
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: "68%",
+              background: "linear-gradient(90deg, #7C3AED, #A78BFA)",
+            }}
+          />
+        </div>
+
+        <div className="mt-1.5 flex items-center justify-between">
+          <span className="text-[10px] text-[#3D3D55]">1,284 memories indexed</span>
+          <span className="text-[10px] font-semibold text-[#7C3AED]">68%</span>
+        </div>
+      </div>
+    </div>
   );
 }
+
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+
+function Divider() {
+  return <div className="mx-3 h-px" style={{ background: "rgba(255,255,255,0.04)" }} />;
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
+export const Sidebar = () => {
+  const pathname = usePathname();
+
+  return (
+    <aside
+      className="relative flex h-full w-[228px] shrink-0 flex-col overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, #0D0B14 0%, #0A0812 60%, #080610 100%)",
+        borderRight: "0.5px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      {/* ambient glow — top-right */}
+      <div
+        className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full blur-3xl"
+        style={{ background: "rgba(124,58,237,0.08)" }}
+        aria-hidden="true"
+      />
+
+      {/* ── Brand header ──────────────────────────────────────────────────── */}
+      <div
+        className="relative flex h-[58px] shrink-0 items-center justify-between px-4"
+        style={{ borderBottom: "0.5px solid rgba(255,255,255,0.05)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-[9px]"
+            style={{ background: "#7C3AED" }}
+          >
+            <Brain className="h-4 w-4 text-white" strokeWidth={1.75} />
+          </div>
+
+          <div className="flex flex-col leading-none">
+            <span
+              className="text-[14px] font-medium tracking-[-0.02em]"
+              style={{ color: "#E5E5F0" }}
+            >
+              hymora
+            </span>
+            <span
+              className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.12em]"
+              style={{ color: "#3D3D55" }}
+            >
+              AI Operating System
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button className="flex h-6 w-6 items-center justify-center rounded-md transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]">
+            <Bell className="h-3.5 w-3.5 text-[#2E2E45] hover:text-[#5A5A72]" strokeWidth={1.75} />
+          </button>
+          <button className="flex h-6 w-6 items-center justify-center rounded-md transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]">
+            <Plus className="h-3.5 w-3.5 text-[#2E2E45] hover:text-[#5A5A72]" strokeWidth={1.75} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Scrollable nav body ───────────────────────────────────────────── */}
+      <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-3 scrollbar-none">
+        {/* Core */}
+        <div className="space-y-0.5">
+          {coreNav.map((item) => (
+            <NavLink key={item.href} item={item} isActive={pathname === item.href} />
+          ))}
+        </div>
+
+        <Divider />
+
+        {/* Generate */}
+        <NavSection label={toolsNav.label} items={toolsNav.items} pathname={pathname} />
+
+        <Divider />
+
+        {/* Workspaces */}
+        <NavSection label={workspaceNav.label} items={workspaceNav.items} pathname={pathname} />
+
+        <Divider />
+
+        {/* System */}
+        <NavSection label="System" items={systemNav} pathname={pathname} />
+      </nav>
+
+      {/* ── Bottom fixed zone ─────────────────────────────────────────────── */}
+      <div className="shrink-0 space-y-2 pb-2 pt-2">
+        {/* AI status */}
+        <AIStatusPanel />
+
+        {/* Workspace insight */}
+        <WorkspaceInsight />
+
+        {/* Memory bar */}
+        <MemoryPulse />
+
+        {/* User */}
+        <UserDropdown />
+      </div>
+    </aside>
+  );
+};

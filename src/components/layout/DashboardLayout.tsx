@@ -1,56 +1,42 @@
 "use client";
 
-import * as React from "react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { cn } from "@/lib/utils";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Navbar } from "@/components/layout/Navbar";
-import { MobileSidebar } from "@/components/layout/MobileSidebar";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { AppSidebar } from "@/components/navigation/app-sidebar";
+import { MobileSidebar } from "@/components/navigation/mobile-sidebar";
+import { usePathname } from "next/navigation";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+export const DashboardLayout = ({
+  children,
+}: DashboardLayoutProps) => {
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const pathname = usePathname();
 
-  // Collapse sidebar automatically on mobile
-  React.useEffect(() => {
-    if (isMobile) setIsCollapsed(true);
-  }, [isMobile]);
+  const isProjectPage =
+    pathname.includes("/dashboard/projects/");
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#0a0a0a]">
-      {/* Desktop Sidebar */}
-      {!isMobile && (
-        <Sidebar
-          isCollapsed={isCollapsed}
-          onToggle={() => setIsCollapsed((v) => !v)}
-        />
+    <div className="flex h-screen bg-[#050505] text-white">
+
+      <MobileSidebar />
+
+      {/* Sidebar */}
+      <AppSidebar />
+
+      {/* Main Content */}
+
+      {isProjectPage ? (
+        <main className="flex-1 min-h-0 overflow-hidden">
+          {children}
+        </main>
+      ) : (
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
       )}
 
-      {/* Main content area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* Navbar — passes mobile sidebar trigger on small screens */}
-        <Navbar isMobile={isMobile} />
-
-        {/* Scrollable content */}
-        <main
-          className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden",
-            "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/[0.06]"
-          )}
-        >
-          <div className="mx-auto w-full max-w-screen-xl px-4 py-6 sm:px-6 lg:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
     </div>
   );
-}
+};

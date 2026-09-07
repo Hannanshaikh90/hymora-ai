@@ -1,0 +1,65 @@
+const response = await fetch(
+  "/api/chat",
+  {
+    method: "POST",
+
+    headers: {
+      "Content-Type":
+        "application/json",
+    },
+
+    body: JSON.stringify({
+      prompt: message,
+    }),
+  }
+);
+
+if (!response.body) {
+  throw new Error(
+    "No response body."
+  );
+}
+
+const reader =
+  response.body.getReader();
+
+const decoder = new TextDecoder();
+
+let streamedText = "";
+
+const assistantMessage = {
+  role: "assistant" as const,
+  content: "",
+};
+
+const streamingChats = [...updatedChats];
+
+streamingChats[activeChat] = {
+  ...streamingChats[activeChat],
+  messages: [
+    ...streamingChats[activeChat]
+      .messages,
+    assistantMessage,
+  ],
+};
+
+setChats(streamingChats);
+
+while (true) {
+  const { done, value } =
+    await reader.read();
+
+  if (done) break;
+
+  const chunk =
+    decoder.decode(value);
+
+  streamedText += chunk;
+
+  streamingChats[activeChat].messages[
+    streamingChats[activeChat]
+      .messages.length - 1
+  ].content = streamedText;
+
+  setChats([...streamingChats]);
+}
