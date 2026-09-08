@@ -94,12 +94,18 @@ export async function GET() {
 
     if (subscription?.stripe_customer_id) {
       try {
-        const stripeInvoices =
-          await stripe.invoices.list({
-            customer:
-              subscription.stripe_customer_id,
-            limit: 20,
-          });
+        if (!stripe) {
+  return Response.json(
+    { error: "Stripe not configured" },
+    { status: 500 }
+  );
+}
+
+const stripeInvoices =
+  await stripe.invoices.list({
+    customer: subscription.stripe_customer_id,
+    limit: 20,
+  });
 
         invoices =
           stripeInvoices.data.map(
