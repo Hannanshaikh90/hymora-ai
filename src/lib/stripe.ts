@@ -1,14 +1,11 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error(
-    "STRIPE_SECRET_KEY is not configured"
-  );
+let stripe: Stripe | null = null;
+
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    typescript: true,
+  });
 }
 
-export const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY,
-  {
-    typescript: true,
-  }
-);
+export { stripe };
